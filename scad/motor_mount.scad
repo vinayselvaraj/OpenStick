@@ -157,4 +157,12 @@ module motor_mount() {
                 translate([sx * motor_bolt_spacing/2, sy * motor_bolt_spacing/2, -faceplate_thick - 1])
                     cylinder(d = motor_bolt_dia, h = faceplate_thick + 2);
 
-                // Rear clearance tunnel for screwdriver / hex bit
+                // Rear clearance tunnel for screwdriver / hex bit access
+                translate([sx * motor_bolt_spacing/2, sy * motor_bolt_spacing/2, -0.1])
+                    cylinder(d = 6.5, h = spar_depth + 2);
+            }
+        }
+    }
+}
+
+motor_mount();
