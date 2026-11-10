@@ -1,0 +1,3 @@
+# Generated STL output (CI releases these; keep out of the repo)
+dist/
+*.stl

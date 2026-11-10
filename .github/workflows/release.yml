@@ -1,0 +1,58 @@
+# Renders all designs in scad/ to STL and publishes a GitHub Release
+# on every push to main.
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad
+          openscad --version
+
+      - name: Render STL files
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          count=0
+          for scad in scad/*.scad; do
+            [ -e "$scad" ] || continue
+            name="$(basename "$scad" .scad)"
+            echo "Rendering $scad -> dist/${name}.stl"
+            openscad -o "dist/${name}.stl" "$scad"
+            count=$((count + 1))
+          done
+          if [ "$count" -eq 0 ]; then
+            echo "ERROR: no .scad files found in scad/"
+            exit 1
+          fi
+          echo "Generated $count STL file(s):"
+          ls -lh dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Full commit SHA as tag => a unique release for every push
+          tag_name: ${{ github.sha }}
+          name: OpenStick ${{ github.event.head_commit.id }}
+          body: |
+            STL files generated from the designs in [`scad/`](https://github.com/${{ github.repository }}/tree/${{ github.sha }}/scad)
+            at commit [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}`).
+
+            | Design | File |
+            | ------ | ---- |
+            | motor_mount | [motor_mount.stl](https://github.com/${{ github.repository }}/releases/download/${{ github.sha }}/motor_mount.stl) |
+          fail_on_unmatched_files: false
