@@ -1,5 +1,9 @@
 # Renders all designs in scad/ to STL and publishes a GitHub Release
 # on every push to main.
+#
+# Each release is tagged v<full commit SHA> (GitHub forbids tags that are
+# bare 40/64-char hex SHAs). The previous release and tag are deleted first
+# so the remote doesn't accumulate one tag per push.
 name: Build & Release
 
 on:
@@ -16,6 +20,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Remove previous release (if any)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Latest release whose tag is v<full sha>; only one should exist,
+          # but take the first if several somehow accumulated.
+          prev_tag="$(gh api repos/${GITHUB_REPOSITORY}/releases \
+            --jq '[.[] | select(.tag_name | startswith("v"))] | sort_by(.published_at) | last | .tag_name // empty')"
+          if [ -n "$prev_tag" ] && [ "$prev_tag" != "v${GITHUB_SHA}" ]; then
+            echo "Deleting previous release ${prev_tag}"
+            release_id="$(gh api repos/${GITHUB_REPOSITORY}/releases \
+              --jq ".[] | select(.tag_name==\"${prev_tag}\") | .id")"
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${release_id}"
+            git push origin --delete "$prev_tag" 2>/dev/null || true
+          else
+            echo "No previous release to clean up"
+          fi
 
       - name: Install OpenSCAD
         run: |
@@ -45,14 +72,13 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # Full commit SHA as tag => a unique release for every push
-          tag_name: ${{ github.sha }}
-          name: OpenStick ${{ github.event.head_commit.id }}
+          tag_name: v${{ github.sha }}
+          name: OpenStick ${{ steps.sha.outputs.short }}
           body: |
             STL files generated from the designs in [`scad/`](https://github.com/${{ github.repository }}/tree/${{ github.sha }}/scad)
             at commit [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}`).
 
             | Design | File |
             | ------ | ---- |
-            | motor_mount | [motor_mount.stl](https://github.com/${{ github.repository }}/releases/download/${{ github.sha }}/motor_mount.stl) |
+            | motor_mount | [motor_mount.stl](https://github.com/${{ github.repository }}/releases/download/v${{ github.sha }}/motor_mount.stl) |
           fail_on_unmatched_files: false
