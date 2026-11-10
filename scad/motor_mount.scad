@@ -1,23 +1,24 @@
 // ===================================================================
 // Project: OpenStickFPV
 // Centered Motor Mount for 10x10mm Spar (Single-Screw Clamp)
-// - Motor Bolt Pattern: 22mm x 22mm Square (Cross Mount / X-Mount)
+// - Motor Bolt Pattern: Slotted 21.5mm - 22.5mm Square (Cross Mount)
 // - Extended collar (34mm total) with dedicated rear pinch clamp
 // - Single M3 bolt clamp isolated from the rigid front faceplate
 // - 4 identical cardinal gussets (0°, 90°, 180°, 270°) for 4-way rigidity
-// - Full-through rear clearance tunnels for motor bolt screwdrivers
+// - Full-through rear clearance slots for motor bolt screwdrivers
 // - Rounded faceplate corners for minimum weight and propwash drag
 // ===================================================================
 
 $fn = 60;
 
-// --- Motor Spec (22mm Cross Mount) ---
-motor_bolt_spacing   = 22.0;   // 22mm square bolt spacing (X & Y)
+// --- Motor Spec (Slotted Cross Mount) ---
+bolt_spacing_min     = 21.5;   // Minimum square spacing
+bolt_spacing_max     = 22.5;   // Maximum square spacing
 motor_bolt_dia       = 3.3;    // M3 bolt clearance
 motor_center_hole    = 9.5;    // Center shaft/circlip/boss clearance
 faceplate_thick      = 4.2;    // Faceplate thickness
-faceplate_w          = 36.0;   // Outer width (X) tailored for 22mm pattern
-faceplate_h          = 36.0;   // Outer height (Y) tailored for 22mm pattern
+faceplate_w          = 36.0;   // Outer width (X)
+faceplate_h          = 36.0;   // Outer height (Y)
 faceplate_corner_r   = 5.5;    // Corner rounding radius
 
 // --- Spar Sleeve Spec ---
@@ -100,7 +101,6 @@ module motor_mount() {
                 cube([collar_w, clamp_lug_h, clamp_length]);
 
             // Cardinal Triangular Gussets (0°, 90°, 180°, 270°)
-            // 15mm long, completely forward of the rear clamp zone
             for (ang = [0, 90, 180, 270]) {
                 rotate([0, 0, ang])
                     cardinal_gusset(length_z = 15.0, width = 2.8);
@@ -116,49 +116,52 @@ module motor_mount() {
         // -------------------------------------------------------------
         // 3. REAR CLAMPING SLIT (Isolated to clamp section)
         // -------------------------------------------------------------
-        // Longitudinal slit through the top ear and top wall
         translate([-clamp_slit_w/2, 0, spar_depth - clamp_length - 0.5])
             cube([clamp_slit_w, collar_h/2 + clamp_lug_h + 1, clamp_length + 1]);
 
-        // Small transverse relief slot to let the clamp ears flex freely
         translate([-(collar_w + 1)/2, spar_dim/2 - 0.1, spar_depth - clamp_length - 0.5])
             cube([collar_w + 1, clamp_lug_h + spar_wall + 1, clamp_slit_w]);
 
         // -------------------------------------------------------------
         // 4. SINGLE M3 CLAMP BOLT & NUT TRAP
         // -------------------------------------------------------------
-        // Horizontal screw hole
         translate([-collar_w/2 - 1, clamp_screw_y, clamp_screw_z])
             rotate([0, 90, 0])
             cylinder(d = clamp_screw_dia, h = collar_w + 2);
 
-        // Hex nut trap on +X side
         translate([collar_w/2 - clamp_nut_depth, clamp_screw_y, clamp_screw_z])
             rotate([0, 90, 0])
             cylinder(d = clamp_nut_dia, h = clamp_nut_depth + 1, $fn = 6);
 
-        // Bolt head counterbore on -X side
         translate([-collar_w/2 - 0.1, clamp_screw_y, clamp_screw_z])
             rotate([0, 90, 0])
             cylinder(d = 6.2, h = 3.0);
 
         // -------------------------------------------------------------
-        // 5. MOTOR BOLT HOLES & REAR SCREWDRIVER CHANNELS (22mm SQUARE)
+        // 5. MOTOR BOLT SLOTS (21.5mm - 22.5mm) & SCREWDRIVER TUNNELS
         // -------------------------------------------------------------
         // Center motor shaft & circlip relief
         translate([0, 0, -faceplate_thick - 1])
             cylinder(d = motor_center_hole, h = faceplate_thick + 2);
 
-        // 4x Motor Bolt Holes (22x22mm Square Pattern) + Driver Clearance
+        // 4x Radial Slots & Matching Driver Access Channels
         for (sx = [-1, 1]) {
             for (sy = [-1, 1]) {
-                // Bolt hole through faceplate
-                translate([sx * motor_bolt_spacing/2, sy * motor_bolt_spacing/2, -faceplate_thick - 1])
-                    cylinder(d = motor_bolt_dia, h = faceplate_thick + 2);
+                // Faceplate M3 Slotted Hole
+                hull() {
+                    translate([sx * bolt_spacing_min/2, sy * bolt_spacing_min/2, -faceplate_thick - 1])
+                        cylinder(d = motor_bolt_dia, h = faceplate_thick + 2);
+                    translate([sx * bolt_spacing_max/2, sy * bolt_spacing_max/2, -faceplate_thick - 1])
+                        cylinder(d = motor_bolt_dia, h = faceplate_thick + 2);
+                }
 
-                // Rear clearance tunnel for screwdriver / hex bit access
-                translate([sx * motor_bolt_spacing/2, sy * motor_bolt_spacing/2, -0.1])
-                    cylinder(d = 5.8, h = spar_depth + 2);
+                // Rear Screwdriver Clearance Slot
+                hull() {
+                    translate([sx * bolt_spacing_min/2, sy * bolt_spacing_min/2, -0.1])
+                        cylinder(d = 5.8, h = spar_depth + 2);
+                    translate([sx * bolt_spacing_max/2, sy * bolt_spacing_max/2, -0.1])
+                        cylinder(d = 5.8, h = spar_depth + 2);
+                }
             }
         }
     }
