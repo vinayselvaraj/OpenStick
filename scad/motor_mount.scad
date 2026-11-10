@@ -1,7 +1,7 @@
 // ===================================================================
 // Project: OpenStickFPV
 // Centered Motor Mount for 10x10mm Spar (Single-Screw Clamp)
-// - Motor Bolt Pattern: 35mm x 35mm Square
+// - Motor Bolt Pattern: 22mm x 22mm Square (Cross Mount / X-Mount)
 // - Extended collar (34mm total) with dedicated rear pinch clamp
 // - Single M3 bolt clamp isolated from the rigid front faceplate
 // - 4 identical cardinal gussets (0°, 90°, 180°, 270°) for 4-way rigidity
@@ -11,14 +11,14 @@
 
 $fn = 60;
 
-// --- Motor Spec (35mm Square Pattern) ---
-motor_bolt_spacing   = 35.0;   // 35mm square bolt spacing (X & Y)
-motor_bolt_dia       = 3.4;    // M3 bolt clearance
-motor_center_hole    = 10.0;   // Center shaft/circlip/boss clearance
-faceplate_thick      = 4.5;    // Faceplate thickness
-faceplate_w          = 48.0;   // Outer width (X) scaled for 35mm spacing
-faceplate_h          = 48.0;   // Outer height (Y) scaled for 35mm spacing
-faceplate_corner_r   = 7.0;    // Corner rounding radius
+// --- Motor Spec (22mm Cross Mount) ---
+motor_bolt_spacing   = 22.0;   // 22mm square bolt spacing (X & Y)
+motor_bolt_dia       = 3.3;    // M3 bolt clearance
+motor_center_hole    = 9.5;    // Center shaft/circlip/boss clearance
+faceplate_thick      = 4.2;    // Faceplate thickness
+faceplate_w          = 36.0;   // Outer width (X) tailored for 22mm pattern
+faceplate_h          = 36.0;   // Outer height (Y) tailored for 22mm pattern
+faceplate_corner_r   = 5.5;    // Corner rounding radius
 
 // --- Spar Sleeve Spec ---
 spar_dim             = 10.15;  // 10x10mm spar (+0.15mm printer tolerance)
@@ -59,8 +59,8 @@ module rounded_faceplate() {
 }
 
 // Cardinal triangular gusset definition (symmetric on all 4 faces)
-module cardinal_gusset(length_z = 18.0, width = 3.0) {
-    reach_x = (faceplate_w / 2) - (collar_w / 2) - 2.0; 
+module cardinal_gusset(length_z = 15.0, width = 2.8) {
+    reach_x = (faceplate_w / 2) - (collar_w / 2) - 1.5; 
     
     translate([collar_w / 2, -width / 2, 0])
         polyhedron(
@@ -100,11 +100,10 @@ module motor_mount() {
                 cube([collar_w, clamp_lug_h, clamp_length]);
 
             // Cardinal Triangular Gussets (0°, 90°, 180°, 270°)
-            // Extended to 18mm to brace the wider faceplate while remaining
-            // forward of the rear clamp zone
+            // 15mm long, completely forward of the rear clamp zone
             for (ang = [0, 90, 180, 270]) {
                 rotate([0, 0, ang])
-                    cardinal_gusset(length_z = 18.0, width = 3.0);
+                    cardinal_gusset(length_z = 15.0, width = 2.8);
             }
         }
 
@@ -138,19 +137,19 @@ module motor_mount() {
             rotate([0, 90, 0])
             cylinder(d = clamp_nut_dia, h = clamp_nut_depth + 1, $fn = 6);
 
-            // Bolt head counterbore on -X side
-            translate([-collar_w/2 - 0.1, clamp_screw_y, clamp_screw_z])
-                rotate([0, 90, 0])
-                cylinder(d = 6.2, h = 3.0);
+        // Bolt head counterbore on -X side
+        translate([-collar_w/2 - 0.1, clamp_screw_y, clamp_screw_z])
+            rotate([0, 90, 0])
+            cylinder(d = 6.2, h = 3.0);
 
         // -------------------------------------------------------------
-        // 5. MOTOR BOLT HOLES & REAR SCREWDRIVER CHANNELS (35mm SQUARE)
+        // 5. MOTOR BOLT HOLES & REAR SCREWDRIVER CHANNELS (22mm SQUARE)
         // -------------------------------------------------------------
         // Center motor shaft & circlip relief
         translate([0, 0, -faceplate_thick - 1])
             cylinder(d = motor_center_hole, h = faceplate_thick + 2);
 
-        // 4x Motor Bolt Holes (35x35mm Square Pattern) + Driver Clearance
+        // 4x Motor Bolt Holes (22x22mm Square Pattern) + Driver Clearance
         for (sx = [-1, 1]) {
             for (sy = [-1, 1]) {
                 // Bolt hole through faceplate
@@ -159,7 +158,7 @@ module motor_mount() {
 
                 // Rear clearance tunnel for screwdriver / hex bit access
                 translate([sx * motor_bolt_spacing/2, sy * motor_bolt_spacing/2, -0.1])
-                    cylinder(d = 6.5, h = spar_depth + 2);
+                    cylinder(d = 5.8, h = spar_depth + 2);
             }
         }
     }
