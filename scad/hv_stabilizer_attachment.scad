@@ -1,13 +1,13 @@
 // ===================================================================
 // Project: OpenStickFPV
-// Component: Underslung H-Stab & Deck-Top V-Stab Tail Mount (Fixed Hole Layout)
+// Component: Underslung H-Stab & Deck-Top V-Stab Tail Mount (Extended Skid)
+// - Extended Tail Skid: Rear extension doubled to 32mm past collar rear face
 // - Fixed hole spacing: Inner set (X = +/- 20mm), Outer set (X = +/- 52mm)
 // - Fixed hole diameter: Clean 3.3mm M3 clearance with separate 6.2mm counterbores
 // - Clear overhead driver access for all 8 top-down screw holes
 // - Underslung 136mm wide bed for folded double-layer DTFB (~10.5mm)
 // - Deck-Top 28mm vertical slot with dual-tier M3 cross-clamp holes
 // - Dual zip-tie clamping around 10x10mm spar with full longitudinal slit
-// - Seamless monolithic ramp-blended tail skid extending below H-stab bed
 // ===================================================================
 
 $fn = 60;
@@ -32,7 +32,6 @@ round_pocket_d       = 6.2;    // Clean round counterbore for M3 screw head
 round_pocket_depth   = 1.2;    // Recess depth into the top face of the bed
 
 // Discrete Fastener Coordinates (8 distinct holes on the H-Stab bed)
-// Spar sleeve outer wall is at X = +/- 6.68mm; V-stab spine wall is at X = +/- 7.05mm
 hstab_holes = [
     // Left Wing (-X)
     [-20.0, -14.0], [-20.0, -34.0],   // Inner set
@@ -52,11 +51,11 @@ ziptie_depth         = 0.8;    // Retention channel depth
 ziptie_inset         = 7.0;    // Inset from ends
 slit_width           = 1.4;    // Compression pinch slit
 
-// --- Tail Skid Spec ---
+// --- Extended Tail Skid Spec ---
 skid_width           = 5.0;    // Runner thickness across X
-skid_drop_below_bed  = 20.0;   // Clearance drop below the H-stab bed
-skid_heel_radius     = 6.0;    // Rounded ground contact curvature
-skid_extension_rear  = 16.0;   // Rearward extension past collar rear face
+skid_drop_below_bed  = 22.0;   // Ground clearance drop below the H-stab bed
+skid_heel_radius     = 7.0;    // Rounded ground contact curvature
+skid_extension_rear  = 32.0;   // Extended length rearward past collar rear (was 16mm)
 
 // Derived Dimensions
 collar_w       = spar_width + 2 * sleeve_wall; // ~13.35mm
@@ -71,22 +70,22 @@ spar_top_z           = collar_h;
 vstab_top_z          = spar_top_z + vstab_depth;
 skid_lowest_z        = hstab_plate_bottom_z - skid_drop_below_bed;
 
-// Monotonic ramp profile for the tail skid beneath the H-stab bed
+// Monotonic ramp profile for the elongated tail skid
 module underslung_skid_profile() {
     polygon(points = [
         [-sleeve_length, hstab_plate_bottom_z],
-        [-sleeve_length * 0.65, hstab_plate_bottom_z - skid_drop_below_bed * 0.38],
-        [-sleeve_length * 0.25, hstab_plate_bottom_z - skid_drop_below_bed * 0.75],
-        [skid_extension_rear - skid_heel_radius * 2, skid_lowest_z],
+        [-sleeve_length * 0.65, hstab_plate_bottom_z - skid_drop_below_bed * 0.35],
+        [-sleeve_length * 0.20, hstab_plate_bottom_z - skid_drop_below_bed * 0.70],
+        [skid_extension_rear - skid_heel_radius * 2.5, skid_lowest_z],
         [skid_extension_rear - 1.0, skid_lowest_z + 1.0],
         [skid_extension_rear, skid_lowest_z + skid_heel_radius],
-        [skid_extension_rear - 2.0, skid_lowest_z + skid_heel_radius * 1.5],
-        [0, hstab_plate_bottom_z - 1.5],
+        [skid_extension_rear - 3.0, skid_lowest_z + skid_heel_radius * 1.5],
+        [0, hstab_plate_bottom_z - 2.0],
         [0, hstab_plate_bottom_z]
     ]);
 }
 
-module empennage_underslung_fixed_holes() {
+module empennage_underslung_extended_skid() {
     difference() {
         // -------------------------------------------------------------
         // 1. ADDITIVE SHAPES
@@ -104,7 +103,7 @@ module empennage_underslung_fixed_holes() {
             translate([-hstab_span_x/2, -sleeve_length, hstab_plate_bottom_z])
                 cube([hstab_span_x, hstab_chord_y, hstab_bed_thick]);
 
-            // Stiffening gussets - kept steep so they don't cover the inner holes
+            // Stiffening gussets - narrow footprint leaving inner holes accessible
             for (sx = [-1, 1]) {
                 hull() {
                     translate([sx * (collar_w/2 - 0.1), -sleeve_length, spar_bottom_z])
@@ -114,7 +113,7 @@ module empennage_underslung_fixed_holes() {
                 }
             }
 
-            // D. Lower Tail Skid Runner (Hangs below H-stab bed)
+            // D. Lower Tail Skid Runner (Extended 32mm rearward)
             translate([-skid_width/2, 0, 0])
                 rotate([90, 0, 90])
                 linear_extrude(height = skid_width)
@@ -163,7 +162,7 @@ module empennage_underslung_fixed_holes() {
             translate([hx, hy, hstab_plate_bottom_z - 2])
                 cylinder(d = screw_hole_d, h = hstab_bed_thick + 4);
 
-            // Shallow 6.2mm counterbore recessed only 1.2mm into the top face
+            // Shallow 6.2mm counterbore recessed 1.2mm into the top face
             translate([hx, hy, hstab_plate_top_z - round_pocket_depth])
                 cylinder(d = round_pocket_d, h = round_pocket_depth + 0.05);
         }
@@ -202,4 +201,4 @@ module empennage_underslung_fixed_holes() {
     }
 }
 
-empennage_underslung_fixed_holes();
+empennage_underslung_extended_skid();
