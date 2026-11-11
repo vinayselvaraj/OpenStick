@@ -1,13 +1,11 @@
 // ===================================================================
 // Project: OpenStickFPV
-// Component: Underslung H-Stab & Deck-Top V-Stab Tail Mount (Extended Skid)
-// - Extended Tail Skid: Rear extension doubled to 32mm past collar rear face
-// - Fixed hole spacing: Inner set (X = +/- 20mm), Outer set (X = +/- 52mm)
-// - Fixed hole diameter: Clean 3.3mm M3 clearance with separate 6.2mm counterbores
-// - Clear overhead driver access for all 8 top-down screw holes
-// - Underslung 136mm wide bed for folded double-layer DTFB (~10.5mm)
+// Component: Empennage Mount - Flat Underslung H-Stab & Deck-Top V-Stab
+// - Continuous planar bottom surface for unbroken horizontal stabilizer mounting
+// - Sized for folded double-layer laminated Dollar Tree Foam Board (~10.5mm)
+// - Underslung 136mm wide bed with 8x M3 through-holes & 6.2mm top counterbores
 // - Deck-Top 28mm vertical slot with dual-tier M3 cross-clamp holes
-// - Dual zip-tie clamping around 10x10mm spar with full longitudinal slit
+// - Dual zip-tie clamping around 10x10mm spar with full longitudinal pinch slit
 // ===================================================================
 
 $fn = 60;
@@ -51,15 +49,9 @@ ziptie_depth         = 0.8;    // Retention channel depth
 ziptie_inset         = 7.0;    // Inset from ends
 slit_width           = 1.4;    // Compression pinch slit
 
-// --- Extended Tail Skid Spec ---
-skid_width           = 5.0;    // Runner thickness across X
-skid_drop_below_bed  = 22.0;   // Ground clearance drop below the H-stab bed
-skid_heel_radius     = 7.0;    // Rounded ground contact curvature
-skid_extension_rear  = 32.0;   // Extended length rearward past collar rear (was 16mm)
-
 // Derived Dimensions
-collar_w       = spar_width + 2 * sleeve_wall; // ~13.35mm
-collar_h       = spar_height + 2 * sleeve_wall; // ~13.35mm
+collar_w       = spar_width + 2 * sleeve_wall;       // ~13.35mm
+collar_h       = spar_height + 2 * sleeve_wall;      // ~13.35mm
 vstab_spine_w  = foam_thick_double + 2 * vstab_wall; // ~14.1mm
 
 // Vertical reference levels (Z=0 is the top face of the H-stab bed plate)
@@ -68,24 +60,8 @@ hstab_plate_bottom_z = -hstab_bed_thick;
 spar_bottom_z        = 0;
 spar_top_z           = collar_h;
 vstab_top_z          = spar_top_z + vstab_depth;
-skid_lowest_z        = hstab_plate_bottom_z - skid_drop_below_bed;
 
-// Monotonic ramp profile for the elongated tail skid
-module underslung_skid_profile() {
-    polygon(points = [
-        [-sleeve_length, hstab_plate_bottom_z],
-        [-sleeve_length * 0.65, hstab_plate_bottom_z - skid_drop_below_bed * 0.35],
-        [-sleeve_length * 0.20, hstab_plate_bottom_z - skid_drop_below_bed * 0.70],
-        [skid_extension_rear - skid_heel_radius * 2.5, skid_lowest_z],
-        [skid_extension_rear - 1.0, skid_lowest_z + 1.0],
-        [skid_extension_rear, skid_lowest_z + skid_heel_radius],
-        [skid_extension_rear - 3.0, skid_lowest_z + skid_heel_radius * 1.5],
-        [0, hstab_plate_bottom_z - 2.0],
-        [0, hstab_plate_bottom_z]
-    ]);
-}
-
-module empennage_underslung_extended_skid() {
+module empennage_mount() {
     difference() {
         // -------------------------------------------------------------
         // 1. ADDITIVE SHAPES
@@ -99,11 +75,11 @@ module empennage_underslung_extended_skid() {
             translate([-vstab_spine_w/2, -sleeve_length, spar_top_z])
                 cube([vstab_spine_w, sleeve_length, vstab_depth]);
 
-            // C. Underslung Horizontal Stabilizer Bed (136mm Span)
+            // C. Underslung Horizontal Stabilizer Bed (Flat 136mm Bed)
             translate([-hstab_span_x/2, -sleeve_length, hstab_plate_bottom_z])
                 cube([hstab_span_x, hstab_chord_y, hstab_bed_thick]);
 
-            // Stiffening gussets - narrow footprint leaving inner holes accessible
+            // Stiffening gussets - steep slope to keep inner holes clear
             for (sx = [-1, 1]) {
                 hull() {
                     translate([sx * (collar_w/2 - 0.1), -sleeve_length, spar_bottom_z])
@@ -111,20 +87,6 @@ module empennage_underslung_extended_skid() {
                     translate([sx * (collar_w/2 + 5.0), -sleeve_length, spar_bottom_z])
                         cube([0.1, sleeve_length, 0.1]);
                 }
-            }
-
-            // D. Lower Tail Skid Runner (Extended 32mm rearward)
-            translate([-skid_width/2, 0, 0])
-                rotate([90, 0, 90])
-                linear_extrude(height = skid_width)
-                    underslung_skid_profile();
-
-            // Smooth forward transition blending skid to H-stab bed bottom
-            hull() {
-                translate([-skid_width/2, -sleeve_length, hstab_plate_bottom_z])
-                    cube([skid_width, 4.0, 0.8]);
-                translate([-skid_width/2, -sleeve_length * 0.5, hstab_plate_bottom_z - skid_drop_below_bed * 0.35])
-                    cube([skid_width, 4.0, 0.8]);
             }
         }
 
@@ -158,11 +120,11 @@ module empennage_underslung_extended_skid() {
             hx = pos[0];
             hy = pos[1];
 
-            // Clean 3.3mm through-hole passing completely through the bed
+            // 3.3mm M3 clearance hole
             translate([hx, hy, hstab_plate_bottom_z - 2])
                 cylinder(d = screw_hole_d, h = hstab_bed_thick + 4);
 
-            // Shallow 6.2mm counterbore recessed 1.2mm into the top face
+            // 6.2mm counterbore recessed 1.2mm into the top face
             translate([hx, hy, hstab_plate_top_z - round_pocket_depth])
                 cylinder(d = round_pocket_d, h = round_pocket_depth + 0.05);
         }
@@ -201,4 +163,4 @@ module empennage_underslung_extended_skid() {
     }
 }
 
-empennage_underslung_extended_skid();
+    empennage_mount();
