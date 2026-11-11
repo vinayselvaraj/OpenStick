@@ -10,7 +10,8 @@ This repository hosts the parametric [OpenSCAD](https://openscad.org/) source fi
 OpenStick/
 ├── scad/                 # OpenSCAD source files (the canonical designs)
 │   ├── motor_mount.scad                    # Centered motor mount, single-screw clamp
-│   └── landing_gear_bottom_attachment.scad # Wide-base landing gear mount
+│   ├── landing_gear_bottom_attachment.scad # Wide-base landing gear mount
+│   └── tail_skid.scad                      # Monolithic ramp-blended tail skid
 ├── .github/workflows/
 │   └── release.yml         # Renders scad/ → STL and publishes a GitHub Release
 ├── LICENSE                 # GNU GPL v3
@@ -25,8 +26,9 @@ Generated STL files are **not** stored in the repo. They are published as GitHub
 | --------- | ------ | ----------- |
 | Motor mount | [`scad/motor_mount.scad`](scad/motor_mount.scad) | Centered mount for a 10×10 mm spar with slotted 21.5–22.5 mm cross motor bolt pattern, extended 34 mm collar with a dedicated rear single-M3 pinch clamp, and 4 identical cardinal gussets for 4-way rigidity. |
 | Landing gear bottom attachment | [`scad/landing_gear_bottom_attachment.scad`](scad/landing_gear_bottom_attachment.scad) | Flat-printing (no overhangs) wide-base landing gear mount: 50 mm gear contact span with a 20 mm gear channel and front/rear retaining lips, plus a centered 10×10 mm spar saddle on top. |
+| Tail skid | [`scad/tail_skid.scad`](scad/tail_skid.scad) | Monolithic ramp-blended tail skid: a single continuous wedge from the front rim down to an 8 mm ground runner (no intermediate steps or floating lugs), rounded 7 mm ground-contact heel extended 20 mm past the collar, flanking gusset ramps blending the runner into the sleeve, dual zip-tie retention channels and a full-length longitudinal pinch slit; prints support-free (flat on its side or inverted). |
 
-Both components are built around a **10×10 mm spar** airframe and include small printing-tolerance allowances in their channel dimensions (e.g. `10.15 mm`, `20.2 mm`).
+All three components are built around a **10×10 mm spar** airframe and include small printing-tolerance allowances in their channel dimensions (e.g. `10.15 mm`, `20.2 mm`).
 
 ## Getting the Files
 
